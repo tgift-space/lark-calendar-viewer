@@ -384,31 +384,18 @@
   </div>
 </div>
 
-<!-- Config -->
-<div class="config-box">
-  <div class="config-title">ตั้งค่า API</div>
-  <div class="config-grid">
-    <div class="config-field">
-      <label>App ID</label>
-      <input type="text" id="appId" placeholder="cli_xxxxxxxxxxxxxxxx">
-    </div>
-    <div class="config-field">
-      <label>App Secret</label>
-      <input type="password" id="appSecret" placeholder="xxxxxxxxxxxxxxxxxxxxxxxx">
-    </div>
-    <div class="config-field config-full">
-      <label>สมาชิก (ชื่อ:open_id คั่นด้วย , เช่น สมชาย:ou_xxx, สมหญิง:ou_yyy)</label>
-      <input type="text" id="memberList" placeholder="สมชาย:ou_ad295de94f2a6e71c52abff4d223c4e9, สมหญิง:ou_05f788222b794bcf92e0c0479495544d">
-    </div>
-  </div>
-  <button class="btn-check" onclick="initMembers()" style="margin-top:10px">บันทึกการตั้งค่า</button>
+<!-- Config hidden — values hardcoded -->
+<div style="display:none">
+  <input type="text" id="appId" value="cli_aab61623ea385ed0">
+  <input type="password" id="appSecret" value="hIjacIViS3pDT6QnrHRGbj62EHKQLTcl">
+  <input type="text" id="memberList" value="SOM:ou_ad295de94f2a6e71c52abff4d223c4e9, GIFT:ou_05f788222b794bcf92e0c0479495544d">
 </div>
 
 <!-- Member selector -->
 <div class="member-section">
   <div class="member-label">เลือกสมาชิกที่อยากดู</div>
   <div class="member-chips" id="memberChips">
-    <span style="color:#9ca3af;font-size:12px">กรอก App ID, App Secret และรายชื่อสมาชิกด้านบนก่อนครับ</span>
+    <span style="color:#9ca3af;font-size:12px">กำลังโหลด...</span>
   </div>
 </div>
 
@@ -447,6 +434,19 @@ let tokenCache = { value: null, exp: 0 };
 
 // init today
 document.getElementById('datePicker').value = new Date().toISOString().slice(0,10);
+// auto-init members
+initMembersAuto();
+
+function initMembersAuto() {
+  const raw = document.getElementById('memberList').value.trim();
+  if (!raw) return;
+  members = raw.split(',').map((s,i) => {
+    const [name, id] = s.trim().split(':');
+    return { name: name?.trim() || 'คนที่'+(i+1), id: id?.trim(), color: COLORS[i % COLORS.length] };
+  }).filter(m => m.id);
+  selectedIds = members.map(m => m.id);
+  renderChips();
+}
 
 function initMembers() {
   const raw = document.getElementById('memberList').value.trim();

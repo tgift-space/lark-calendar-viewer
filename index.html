@@ -247,7 +247,7 @@ async function getFreebusy(token, userId, date) {
   const res=await fetch('https://holy-wildflower-f7e2.gratchadaporn.workers.dev/open-apis/calendar/v4/freebusy/list',{
     method:'POST',
     headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},
-    body:JSON.stringify({time_min:date+'T09:00:00+07:00', time_max:date+'T18:00:00+07:00', user_id:userId})
+    body:JSON.stringify({time_min:date+'T02:00:00Z', time_max:date+'T11:00:00Z', user_id:userId})
   });
   const data=await res.json();
   if (data.code!==0) throw new Error(data.msg);
@@ -256,7 +256,7 @@ async function getFreebusy(token, userId, date) {
 
 function toLocalHour(utcStr) {
   const d=new Date(utcStr);
-  return d.getHours()+d.getMinutes()/60;
+  return d.getUTCHours()+7+d.getUTCMinutes()/60;
 }
 
 function pct(h) { return Math.max(0,Math.min(100,(h-WORK_START)/HOURS*100)); }

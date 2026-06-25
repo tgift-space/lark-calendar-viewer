@@ -149,7 +149,6 @@ input[type="date"]:focus, select:focus { border-color: #1A3C6E; }
   </div>
 </div>
 
-<div id="debugBox" style="display:none;margin-top:12px;background:#1e1e2e;border-radius:10px;padding:12px;font-family:monospace;font-size:11px;color:#cdd6f4;max-height:200px;overflow-y:auto"></div>
 
 <script>
 const WORK_START = 9, WORK_END = 18, HOURS = WORK_END - WORK_START;
@@ -266,13 +265,6 @@ function toLocalHour(utcStr) {
   return (hh + 7) % 24 + mm / 60;
 }
 
-function debugLog(msg) {
-  const box=document.getElementById('debugBox');
-  if(!box) return;
-  box.style.display='block';
-  box.innerHTML+=`<div>${msg}</div>`;
-}
-
 function dedupBusy(busy) {
   const seen = new Set();
   return busy.filter(b => {
@@ -363,9 +355,7 @@ async function checkWeek() {
     await Promise.all(selected.flatMap(m=>days.map(async day=>{
       const ds=dateStr(day);
       const key=`${m.id}_${ds}`;
-      const _r=await getFreebusy(token,m.id,ds);
-      allData[key]=_r;
-      debugLog(`[${m.name}] ${ds} → ${JSON.stringify(_r.map(b=>b.start_time.slice(11,16)+'–'+b.end_time.slice(11,16)))}`);
+      allData[key]=await getFreebusy(token,m.id,ds);
     })));
 
     // build grid

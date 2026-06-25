@@ -256,7 +256,7 @@ async function getFreebusy(token, userId, date) {
 
 function toLocalHour(utcStr) {
   const d=new Date(utcStr);
-  return d.getUTCHours()+7+d.getUTCMinutes()/60;
+  return d.getHours()+d.getMinutes()/60;
 }
 
 function pct(h) { return Math.max(0,Math.min(100,(h-WORK_START)/HOURS*100)); }

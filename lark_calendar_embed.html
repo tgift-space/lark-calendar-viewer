@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Team Calendar Viewer</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #F7F8FA;
+    color: #1a1a2e;
+    padding: 16px;
+    font-size: 13px;
+  }
+
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1a1a2e;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .title-icon {
+    width: 28px; height: 28px;
+    background: #1A3C6E;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 14px;
+  }
+
+  .controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  select, input[type="date"] {
+    padding: 6px 10px;
+    border: 1px solid #dde1ea;
+    border-radius: 8px;
+    font-size: 12px;
+    background: white;
+    color: #1a1a2e;
+    outline: none;
+    cursor: pointer;
+  }
+
+  select:focus, input[type="date"]:focus {
+    border-color: #1A3C6E;
+  }
+
+  .btn-check {
+    padding: 6px 16px;
+    background: #1A3C6E;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background .15s;
+  }
+
+  .btn-check:hover { background: #2E6DB4; }
+  .btn-check:disabled { background: #aab4c8; cursor: not-allowed; }
+
+  /* Config section */
+  .config-box {
+    background: white;
+    border: 1px solid #dde1ea;
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 14px;
+  }
+
+  .config-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    margin-bottom: 10px;
+  }
+
+  .config-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .config-field label {
+    display: block;
+    font-size: 11px;
+    color: #6b7280;
+    margin-bottom: 4px;
+  }
+
+  .config-field input {
+    width: 100%;
+    padding: 6px 10px;
+    border: 1px solid #dde1ea;
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: monospace;
+    color: #1a1a2e;
+    background: #f9fafb;
+    outline: none;
+  }
+
+  .config-field input:focus { border-color: #1A3C6E; background: white; }
+
+  .config-full { grid-column: 1 / -1; }
+
+  /* Member chips */
+  .member-section { margin-bottom: 14px; }
+
+  .member-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    margin-bottom: 8px;
+  }
+
+  .member-chips {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1.5px solid #dde1ea;
+    background: white;
+    cursor: pointer;
+    font-size: 12px;
+    color: #4b5563;
+    transition: all .15s;
+    user-select: none;
+  }
+
+  .chip:hover { border-color: #1A3C6E; color: #1A3C6E; }
+
+  .chip.selected {
+    background: #EAF2FB;
+    border-color: #2E6DB4;
+    color: #1A3C6E;
+    font-weight: 500;
+  }
+
+  .chip-avatar {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px;
+    font-weight: 700;
+    color: white;
+  }
+
+  /* Timeline */
+  .timeline-card {
+    background: white;
+    border: 1px solid #dde1ea;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .timeline-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid #f0f2f5;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .timeline-date {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1a1a2e;
+  }
+
+  .legend {
+    display: flex;
+    gap: 12px;
+    font-size: 11px;
+    color: #6b7280;
+    align-items: center;
+  }
+
+  .legend-dot {
+    width: 10px; height: 10px;
+    border-radius: 2px;
+    display: inline-block;
+    margin-right: 4px;
+  }
+
+  .timeline-body { padding: 16px; }
+
+  /* Hour ruler */
+  .ruler {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: 0;
+    margin-bottom: 8px;
+  }
+
+  .ruler-hours {
+    grid-column: 2;
+    display: flex;
+    position: relative;
+    height: 20px;
+  }
+
+  .ruler-hour {
+    flex: 1;
+    font-size: 10px;
+    color: #9ca3af;
+    text-align: left;
+    padding-left: 2px;
+    border-left: 1px solid #f0f2f5;
+  }
+
+  /* Member row */
+  .member-row {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    align-items: center;
+    margin-bottom: 10px;
+    gap: 0;
+  }
+
+  .member-name {
+    font-size: 12px;
+    color: #374151;
+    font-weight: 500;
+    padding-right: 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .timeline-bar {
+    position: relative;
+    height: 28px;
+    background: #f0fdf4;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid #d1fae5;
+  }
+
+  .busy-block {
+    position: absolute;
+    top: 0; bottom: 0;
+    background: #EF4444;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: white;
+    font-weight: 500;
+    overflow: hidden;
+    white-space: nowrap;
+    padding: 0 4px;
+    min-width: 4px;
+  }
+
+  .free-label {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 11px;
+    color: #16a34a;
+    font-weight: 500;
+    pointer-events: none;
+  }
+
+  /* Status */
+  .status-empty {
+    text-align: center;
+    padding: 32px 16px;
+    color: #9ca3af;
+    font-size: 13px;
+  }
+
+  .status-empty .emoji { font-size: 28px; display: block; margin-bottom: 8px; }
+
+  .loading {
+    text-align: center;
+    padding: 32px 16px;
+    color: #6b7280;
+    font-size: 13px;
+  }
+
+  .spinner {
+    display: inline-block;
+    width: 20px; height: 20px;
+    border: 2px solid #dde1ea;
+    border-top-color: #1A3C6E;
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+    margin-bottom: 8px;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .error-box {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 12px;
+    color: #dc2626;
+    margin: 8px 0;
+  }
+
+  .badge-free {
+    display: inline-block;
+    background: #f0fdf4;
+    color: #16a34a;
+    border: 1px solid #bbf7d0;
+    border-radius: 12px;
+    padding: 1px 8px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  .badge-busy {
+    display: inline-block;
+    background: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+    border-radius: 12px;
+    padding: 1px 8px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  .summary-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+  }
+
+  .summary-card {
+    flex: 1;
+    min-width: 120px;
+    background: #f9fafb;
+    border: 1px solid #f0f2f5;
+    border-radius: 8px;
+    padding: 10px 12px;
+  }
+
+  .summary-card .sc-label { font-size: 11px; color: #6b7280; margin-bottom: 4px; }
+  .summary-card .sc-val { font-size: 14px; font-weight: 600; color: #1a1a2e; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="title">
+    <div class="title-icon">📅</div>
+    Team Calendar Viewer
+  </div>
+</div>
+
+<!-- Config -->
+<div class="config-box">
+  <div class="config-title">ตั้งค่า API</div>
+  <div class="config-grid">
+    <div class="config-field">
+      <label>App ID</label>
+      <input type="text" id="appId" placeholder="cli_xxxxxxxxxxxxxxxx">
+    </div>
+    <div class="config-field">
+      <label>App Secret</label>
+      <input type="password" id="appSecret" placeholder="xxxxxxxxxxxxxxxxxxxxxxxx">
+    </div>
+    <div class="config-field config-full">
+      <label>สมาชิก (ชื่อ:open_id คั่นด้วย , เช่น สมชาย:ou_xxx, สมหญิง:ou_yyy)</label>
+      <input type="text" id="memberList" placeholder="สมชาย:ou_ad295de94f2a6e71c52abff4d223c4e9, สมหญิง:ou_05f788222b794bcf92e0c0479495544d">
+    </div>
+  </div>
+  <button class="btn-check" onclick="initMembers()" style="margin-top:10px">บันทึกการตั้งค่า</button>
+</div>
+
+<!-- Member selector -->
+<div class="member-section">
+  <div class="member-label">เลือกสมาชิกที่อยากดู</div>
+  <div class="member-chips" id="memberChips">
+    <span style="color:#9ca3af;font-size:12px">กรอก App ID, App Secret และรายชื่อสมาชิกด้านบนก่อนครับ</span>
+  </div>
+</div>
+
+<!-- Date + check -->
+<div class="controls" style="margin-bottom:14px">
+  <input type="date" id="datePicker">
+  <button class="btn-check" id="btnCheck" onclick="checkAvailability()">ดูตารางว่าง</button>
+</div>
+
+<!-- Timeline -->
+<div class="timeline-card">
+  <div class="timeline-header">
+    <span class="timeline-date" id="timelineDate">—</span>
+    <div class="legend">
+      <span><span class="legend-dot" style="background:#EF4444"></span>ติดประชุม</span>
+      <span><span class="legend-dot" style="background:#bbf7d0;border:1px solid #86efac"></span>ว่าง</span>
+    </div>
+  </div>
+  <div class="timeline-body" id="timelineBody">
+    <div class="status-empty">
+      <span class="emoji">🗓</span>
+      เลือกสมาชิกและวันที่ แล้วกด "ดูตารางว่าง"
+    </div>
+  </div>
+</div>
+
+<script>
+const WORK_START = 9;
+const WORK_END = 18;
+const HOURS = WORK_END - WORK_START;
+const COLORS = ['#1A3C6E','#2E6DB4','#0F6E56','#854F0B','#993556'];
+
+let members = [];
+let selectedIds = [];
+let tokenCache = { value: null, exp: 0 };
+
+// init today
+document.getElementById('datePicker').value = new Date().toISOString().slice(0,10);
+
+function initMembers() {
+  const raw = document.getElementById('memberList').value.trim();
+  if (!raw) return alert('กรอกรายชื่อสมาชิกก่อนครับ');
+  members = raw.split(',').map((s,i) => {
+    const [name, id] = s.trim().split(':');
+    return { name: name?.trim() || 'คนที่'+(i+1), id: id?.trim(), color: COLORS[i % COLORS.length] };
+  }).filter(m => m.id);
+  selectedIds = members.map(m => m.id);
+  renderChips();
+  alert('บันทึกแล้วครับ ✓');
+}
+
+function renderChips() {
+  const wrap = document.getElementById('memberChips');
+  if (!members.length) { wrap.innerHTML = '<span style="color:#9ca3af;font-size:12px">ยังไม่มีสมาชิก</span>'; return; }
+  wrap.innerHTML = members.map(m => `
+    <div class="chip selected" id="chip_${m.id}" onclick="toggleMember('${m.id}')">
+      <div class="chip-avatar" style="background:${m.color}">${m.name.charAt(0)}</div>
+      ${m.name}
+    </div>
+  `).join('');
+}
+
+function toggleMember(id) {
+  if (selectedIds.includes(id)) {
+    selectedIds = selectedIds.filter(x => x !== id);
+  } else {
+    selectedIds.push(id);
+  }
+  document.getElementById('chip_'+id).classList.toggle('selected', selectedIds.includes(id));
+}
+
+async function getToken() {
+  if (tokenCache.value && Date.now() < tokenCache.exp) return tokenCache.value;
+  const appId = document.getElementById('appId').value.trim();
+  const appSecret = document.getElementById('appSecret').value.trim();
+  if (!appId || !appSecret) throw new Error('กรอก App ID และ App Secret ก่อนครับ');
+
+  const res = await fetch('https://open.larksuite.com/open-apis/auth/v3/tenant_access_token/internal', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ app_id: appId, app_secret: appSecret })
+  });
+  const data = await res.json();
+  if (data.code !== 0) throw new Error('ขอ token ไม่สำเร็จ: ' + data.msg);
+  tokenCache = { value: data.tenant_access_token, exp: Date.now() + (data.expire - 300) * 1000 };
+  return tokenCache.value;
+}
+
+async function getFreebusy(token, userId, date) {
+  const res = await fetch('https://open.larksuite.com/open-apis/calendar/v4/freebusy/list', {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      time_min: date + 'T02:00:00Z',
+      time_max: date + 'T11:00:00Z',
+      user_id: userId
+    })
+  });
+  const data = await res.json();
+  if (data.code !== 0) throw new Error(data.msg);
+  return data.data?.freebusy_list || [];
+}
+
+function toLocalHour(utcStr) {
+  const d = new Date(utcStr);
+  return d.getUTCHours() + 7 + d.getUTCMinutes() / 60;
+}
+
+function pct(h) {
+  return Math.max(0, Math.min(100, (h - WORK_START) / HOURS * 100));
+}
+
+async function checkAvailability() {
+  const date = document.getElementById('datePicker').value;
+  if (!date) return alert('เลือกวันที่ก่อนครับ');
+  if (!selectedIds.length) return alert('เลือกสมาชิกก่อนครับ');
+  if (!document.getElementById('appId').value) return alert('กรอก App ID ก่อนครับ');
+
+  const body = document.getElementById('timelineBody');
+  const titleEl = document.getElementById('timelineDate');
+
+  body.innerHTML = `<div class="loading"><div class="spinner"></div><br>กำลังดึงข้อมูล...</div>`;
+
+  const d = new Date(date);
+  const dayNames = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
+  titleEl.textContent = `วัน${dayNames[d.getDay()]}ที่ ${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()+543}`;
+
+  try {
+    const token = await getToken();
+    const rows = [];
+    const selected = members.filter(m => selectedIds.includes(m.id));
+
+    for (const m of selected) {
+      const busy = await getFreebusy(token, m.id, date);
+      rows.push({ member: m, busy });
+    }
+
+    renderTimeline(body, rows, date);
+  } catch (e) {
+    body.innerHTML = `<div class="error-box">❌ ${e.message}</div>`;
+  }
+}
+
+function renderTimeline(body, rows, date) {
+  const hours = Array.from({length: HOURS+1}, (_,i) => WORK_START + i);
+
+  let html = `<div class="ruler">
+    <div></div>
+    <div class="ruler-hours">
+      ${hours.map(h => `<div class="ruler-hour">${h}:00</div>`).join('')}
+    </div>
+  </div>`;
+
+  let totalBusy = 0;
+  let totalFree = 0;
+
+  for (const { member, busy } of rows) {
+    const blocks = busy.map(b => {
+      const s = toLocalHour(b.start_time);
+      const e = toLocalHour(b.end_time);
+      const left = pct(s);
+      const width = pct(e) - pct(s);
+      const dur = e - s;
+      totalBusy += dur;
+      return { s, e, left, width, dur };
+    });
+
+    const freeTime = HOURS - blocks.reduce((a,b) => a + b.dur, 0);
+    totalFree += Math.max(0, freeTime);
+
+    const busyHtml = blocks.map(b =>
+      `<div class="busy-block" style="left:${b.left.toFixed(1)}%;width:${Math.max(b.width,0.5).toFixed(1)}%">
+        ${b.width > 5 ? `${String(Math.floor(b.s)).padStart(2,'0')}:${b.s%1===0?'00':'30'}–${String(Math.floor(b.e)).padStart(2,'0')}:${b.e%1===0?'00':'30'}` : ''}
+      </div>`
+    ).join('');
+
+    const isFree = blocks.length === 0;
+
+    html += `<div class="member-row">
+      <div class="member-name" title="${member.name}">
+        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${member.color};margin-right:6px"></span>
+        ${member.name}
+      </div>
+      <div class="timeline-bar">
+        ${isFree ? '<div class="free-label">ว่างทั้งวัน ✓</div>' : busyHtml}
+      </div>
+    </div>`;
+  }
+
+  // Summary
+  const freeSlots = findFreeSlots(rows);
+  html += `<div class="summary-row">
+    <div class="summary-card">
+      <div class="sc-label">ช่วงที่ทุกคนว่าง</div>
+      <div class="sc-val">${freeSlots.length > 0 ? freeSlots[0] : 'ไม่มี'}</div>
+    </div>
+    <div class="summary-card">
+      <div class="sc-label">รวมเวลาว่าง</div>
+      <div class="sc-val">${Math.round(totalFree)} ชม.</div>
+    </div>
+    <div class="summary-card">
+      <div class="sc-label">รวมเวลาติดประชุม</div>
+      <div class="sc-val">${Math.round(totalBusy)} ชม.</div>
+    </div>
+  </div>`;
+
+  if (freeSlots.length > 1) {
+    html += `<div style="margin-top:10px;font-size:12px;color:#374151">
+      <strong>ช่วงที่ทุกคนว่างทั้งหมด:</strong> ${freeSlots.join(' · ')}
+    </div>`;
+  }
+
+  body.innerHTML = html;
+}
+
+function findFreeSlots(rows) {
+  const slots = [];
+  for (let h = WORK_START; h < WORK_END; h++) {
+    const allFree = rows.every(({ busy }) =>
+      !busy.some(b => {
+        const s = toLocalHour(b.start_time);
+        const e = toLocalHour(b.end_time);
+        return s < h+1 && e > h;
+      })
+    );
+    if (allFree) {
+      const label = `${String(h).padStart(2,'0')}:00–${String(h+1).padStart(2,'0')}:00`;
+      if (slots.length && slots[slots.length-1].endsWith(`${String(h).padStart(2,'0')}:00`)) {
+        slots[slots.length-1] = slots[slots.length-1].split('–')[0] + `–${String(h+1).padStart(2,'0')}:00`;
+      } else {
+        slots.push(label);
+      }
+    }
+  }
+  return slots;
+}
+</script>
+</body>
+</html>

@@ -260,8 +260,10 @@ async function getFreebusy(token, userId, date) {
 }
 
 function toLocalHour(utcStr) {
-  const d=new Date(utcStr);
-  return d.getUTCHours()+7+d.getUTCMinutes()/60;
+  // parse UTC time directly from string to avoid JS timezone issues
+  const timePart = utcStr.slice(11, 19); // "HH:MM:SS"
+  const [hh, mm] = timePart.split(':').map(Number);
+  return (hh + 7) % 24 + mm / 60;
 }
 
 function debugLog(msg) {

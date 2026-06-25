@@ -486,7 +486,7 @@ async function getToken() {
   const appSecret = document.getElementById('appSecret').value.trim();
   if (!appId || !appSecret) throw new Error('กรอก App ID และ App Secret ก่อนครับ');
 
-  const res = await fetch('https://open.larksuite.com/open-apis/auth/v3/tenant_access_token/internal', {
+  const res = await fetch('https://holy-wildflower-f7e2.gratchadaporn.workers.dev/open-apis/auth/v3/tenant_access_token/internal', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ app_id: appId, app_secret: appSecret })
@@ -498,7 +498,7 @@ async function getToken() {
 }
 
 async function getFreebusy(token, userId, date) {
-  const res = await fetch('https://open.larksuite.com/open-apis/calendar/v4/freebusy/list', {
+  const res = await fetch('https://holy-wildflower-f7e2.gratchadaporn.workers.dev/open-apis/calendar/v4/freebusy/list', {
     method: 'POST',
     headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
     body: JSON.stringify({
